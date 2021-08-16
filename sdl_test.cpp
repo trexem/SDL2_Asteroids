@@ -1,14 +1,45 @@
 #include <stdio.h>
 #include <iostream>
+#include <string>
 #include <SDL2/SDL.h>
+#include <SDL_image.h>
+#include "Texture.hpp"
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
 
 SDL_Window* g_window = nullptr;
-SDL_Surface* g_screen_surface = nullptr;
-SDL_Surface* g_hello_world = nullptr;
+SDL_Renderer* g_renderer = nullptr;
+Texture g_texture = Texture(g_renderer);
 
+/*SDL_Surface* loadSurface(std::string path) {
+    SDL_Surface* optimized_surface = nullptr;
+    SDL_Surface* loaded_surface = IMG_Load(path.c_str());
+    if (loaded_surface == NULL) {
+        std::cout << "Unable to load image " << path.c_str() << "! SDL ERROR: " << SDL_GetError() << '\n';
+    } else{
+        optimized_surface = SDL_ConvertSurface(loaded_surface, g_screen_surface->format, 0);
+        if (optimized_surface == NULL) {
+            std::cout << "Unable to optimize image " << path.c_str() << "! SDL Error: " << SDL_GetError() << '\n';
+        }
+        SDL_FreeSurface(loaded_surface);
+    }
+    return optimized_surface;
+   }*/
+SDL_Texture* loadTexture(std::string path) {
+	SDL_Texture* new_texture = nullptr;
+	SDL_Surface* loaded_surface = IMG_Load(path.c_str());
+	if (loaded_surface == nullptr) {
+		std::cout << "Unable to load image " << path.c_str() << "! SDL ERROR: " << SDL_GetError() << '\n';
+	} else{
+		new_texture = SDL_CreateTextureFromSurface(g_renderer, loaded_surface);
+		if (new_texture == nullptr) {
+			std::cout << "Unable to create texture from " << path.c_str() << "! SDL Eerror: " << SDL_GetError() << '\n';
+		}
+		SDL_FreeSurface(loaded_surface);
+	}
+	return new_texture;
+}
 
 bool init() {
 	bool success = true;
@@ -27,19 +58,28 @@ bool init() {
 			printf("Window could not be created! SDL_Error: %s\n", SDL_GetError() );
 			success = false;
 		} else{
-			g_screen_surface = SDL_GetWindowSurface(g_window);
+			g_renderer = SDL_CreateRenderer(g_window, -1, SDL_RENDERER_ACCELERATED);
+			if (g_renderer == nullptr) {
+				std::cout << "Renderer could not be created! SDL Error: " << SDL_GetError() << '\n';
+				success = false;
+			} else {
+				g_texture.m_renderer = g_renderer;
+				SDL_SetRenderDrawColor(g_renderer, 0x00, 0x00, 0x00, 0xFF);
+				int img_flags = IMG_INIT_PNG;
+				if (!(IMG_Init(img_flags) & img_flags)) {
+					std::cout << "SDL_image could not initialize! SDL_image ERROR: " << IMG_GetError() << '\n';
+				}
+			}
 		}
 	}
 	return success;
 }
-bool loadMedia()
-{
+bool loadMedia() {
 	    //Loading success flag
 	bool success = true;
 
 	    //Load splash image
-	g_hello_world = SDL_LoadBMP("img/hello_world.bmp");
-	if (g_hello_world == NULL)
+	if (!g_texture.loadFromFile("img/hello_world.bmp"))
 	{
 		printf("Unable to load image %s! SDL Error: %s\n", "img/hello_world.bmp", SDL_GetError() );
 		success = false;
@@ -48,10 +88,14 @@ bool loadMedia()
 	return success;
 }
 
+
 void close() {
-	SDL_FreeSurface(g_hello_world);
-	g_hello_world = nullptr;
+	g_texture.free();
+	SDL_DestroyRenderer(g_renderer);
 	SDL_DestroyWindow(g_window);
+	g_window = nullptr;
+	g_renderer = nullptr;
+	IMG_Quit();
 	SDL_Quit();
 }
 
@@ -71,44 +115,40 @@ int main(int argc, char const *argv[]) {
 			SDL_Event e;
 			SDL_Rect* pos;
 			int speed = 3;
-			pos->x = g_screen_surface->clip_rect.w / 2 - g_hello_world->clip_rect.w / 2;
-			pos->y = g_screen_surface->clip_rect.h / 2 - g_hello_world->clip_rect.h / 2;
+			pos->x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
+			pos->y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
 			while (!quit) {
 				while (SDL_PollEvent(&e) != 0) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
 					} else if (e.type == SDL_KEYDOWN) {
-						switch (e.key.keysym.sym) {
-						case SDLK_UP:
+						if (e.key.keysym.sym == SDLK_UP) {
 							pos->y -= speed;
 							if (pos->y < 0) {
 								pos->y = 0;
 							}
-							break;
-						case SDLK_DOWN:
+						} else if (e.key.keysym.sym == SDLK_DOWN) {
 							pos->y += speed;
-							if (pos->y > SCREEN_HEIGHT - g_hello_world->clip_rect.h) {
-								pos->y = SCREEN_HEIGHT - g_hello_world->clip_rect.h;
+							if (pos->y > SCREEN_HEIGHT - g_texture.getHeight()) {
+								pos->y = SCREEN_HEIGHT - g_texture.getHeight();
 							}
-							break;
-						case SDLK_LEFT:
+						}
+						if (e.key.keysym.sym == SDLK_LEFT) {
 							pos->x -= speed;
 							if (pos->x < 0) {
 								pos->x = 0;
 							}
-							break;
-						case SDLK_RIGHT:
+						} else if (e.key.keysym.sym == SDLK_RIGHT) {
 							pos->x += speed;
-							if (pos->x > SCREEN_WIDTH - g_hello_world->clip_rect.w) {
-								pos->x = SCREEN_WIDTH - g_hello_world->clip_rect.w;
+							if (pos->x > SCREEN_WIDTH - g_texture.getWidth()) {
+								pos->x = SCREEN_WIDTH - g_texture.getWidth();
 							}
-							break;
 						}
 					}
 				}
-				SDL_FillRect(g_screen_surface, nullptr, SDL_MapRGB(g_screen_surface->format, 0xFF, 0xFF, 0xFF));
-				SDL_BlitSurface(g_hello_world, nullptr, g_screen_surface, pos);
-				SDL_UpdateWindowSurface(g_window);
+				SDL_RenderClear(g_renderer);
+				g_texture.render(pos->x, pos->y);
+				SDL_RenderPresent(g_renderer);
 			}
 		}
 	}
