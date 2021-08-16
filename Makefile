@@ -15,4 +15,4 @@ LINKER_FLAGS = -lSDL2main -lSDL2 -lSDL2_image
 
 #This is the target that compiles our executable
 all : $(OBJS)
-	g++ $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) $(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -o $(OBJ_NAME)
+	g++ $(OBJS) $(INCLUDE_PATHS) $(LIBRARY_PATHS) $(LINKER_FLAGS) $(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -o $(OBJ_NAME)

@@ -28,7 +28,7 @@ public:
 		} else {
 			SDL_SetColorKey(loaded_surface, SDL_TRUE, SDL_MapRGB(loaded_surface->format, 0, 0xFF, 0xFF));
 			new_texture = SDL_CreateTextureFromSurface(m_renderer, loaded_surface);
-			if (new_texture == nullptr) {
+			if (new_texture == NULL) {
 				std::cout << "Unable to create texture from " << t_path.c_str() << "! SDL Eerror: " << SDL_GetError() << '\n';
 			} else{
 				m_width = loaded_surface->w;
@@ -50,6 +50,10 @@ public:
 	void render(int t_x, int t_y) {
 		SDL_Rect render_quad = {t_x, t_y, m_width, m_height};
 		SDL_RenderCopy(m_renderer, m_texture, NULL, &render_quad);
+	}
+	void renderEx(int t_x, int t_y, SDL_Rect* t_clip, double t_angle, SDL_Point* t_center, SDL_RendererFlip t_flip) {
+		SDL_Rect render_quad = {t_x, t_y, m_width, m_height};
+		SDL_RenderCopyEx(m_renderer, m_texture, t_clip, &render_quad, t_angle, t_center, t_flip);
 	}
 
 	int getWidth() {

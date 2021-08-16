@@ -113,41 +113,70 @@ int main(int argc, char const *argv[]) {
 		} else{
 			bool quit = false;
 			SDL_Event e;
-			SDL_Rect* pos;
+			double degrees = 0;
+			SDL_RendererFlip flip_type = SDL_FLIP_NONE;
+			SDL_Point pos;
 			int speed = 3;
-			pos->x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
-			pos->y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
+			pos.x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
+			pos.y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
 			while (!quit) {
 				while (SDL_PollEvent(&e) != 0) {
 					if (e.type == SDL_QUIT) {
 						quit = true;
-					} else if (e.type == SDL_KEYDOWN) {
-						if (e.key.keysym.sym == SDLK_UP) {
-							pos->y -= speed;
-							if (pos->y < 0) {
-								pos->y = 0;
-							}
-						} else if (e.key.keysym.sym == SDLK_DOWN) {
-							pos->y += speed;
-							if (pos->y > SCREEN_HEIGHT - g_texture.getHeight()) {
-								pos->y = SCREEN_HEIGHT - g_texture.getHeight();
-							}
+					}
+				}
+				const Uint8* current_key_states = SDL_GetKeyboardState(NULL);
+				if (current_key_states[SDL_SCANCODE_UP]) {
+					pos.y -= speed;
+					if (pos.y < 0) {
+						pos.y = 0;
+					}
+					if (current_key_states[SDL_SCANCODE_LEFT]) {
+						pos.x -= speed;
+						if (pos.x < 0) {
+							pos.x = 0;
 						}
-						if (e.key.keysym.sym == SDLK_LEFT) {
-							pos->x -= speed;
-							if (pos->x < 0) {
-								pos->x = 0;
-							}
-						} else if (e.key.keysym.sym == SDLK_RIGHT) {
-							pos->x += speed;
-							if (pos->x > SCREEN_WIDTH - g_texture.getWidth()) {
-								pos->x = SCREEN_WIDTH - g_texture.getWidth();
-							}
+					} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
+						pos.x += speed;
+						if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
+							pos.x = SCREEN_WIDTH - g_texture.getWidth();
+						}
+					}
+				} else if (current_key_states[SDL_SCANCODE_DOWN]) {
+					pos.y += speed;
+					if (pos.y > SCREEN_HEIGHT - g_texture.getHeight()) {
+						pos.y = SCREEN_HEIGHT - g_texture.getHeight();
+					}
+					if (current_key_states[SDL_SCANCODE_LEFT]) {
+						pos.x -= speed;
+						if (pos.x < 0) {
+							pos.x = 0;
+						}
+					} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
+						pos.x += speed;
+						if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
+							pos.x = SCREEN_WIDTH - g_texture.getWidth();
 						}
 					}
 				}
+				if (current_key_states[SDL_SCANCODE_LEFT]) {
+					pos.x -= speed;
+					if (pos.x < 0) {
+						pos.x = 0;
+					}
+				} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
+					pos.x += speed;
+					if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
+						pos.x = SCREEN_WIDTH - g_texture.getWidth();
+					}
+				}
+				if (current_key_states[SDL_SCANCODE_Q]) {
+					degrees += 1;
+				} else if (current_key_states[SDL_SCANCODE_E]) {
+					degrees -= 1;
+				}
 				SDL_RenderClear(g_renderer);
-				g_texture.render(pos->x, pos->y);
+				g_texture.renderEx(pos.x, pos.y, nullptr, degrees, nullptr, flip_type);
 				SDL_RenderPresent(g_renderer);
 			}
 		}
