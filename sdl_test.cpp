@@ -7,10 +7,16 @@
 
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
+const int TOP_SPEED = 1000;
+const int MIN_SPEED = -50;
+const int TOP_ROTATION_SPEED = 720;
+const double PI = 3.14159264;
+
 
 SDL_Window* g_window = nullptr;
 SDL_Renderer* g_renderer = nullptr;
 Texture g_texture = Texture(g_renderer);
+Uint32 last_tick = 0, tick = 0;
 
 /*SDL_Surface* loadSurface(std::string path) {
     SDL_Surface* optimized_surface = nullptr;
@@ -99,6 +105,51 @@ void close() {
 	SDL_Quit();
 }
 
+void move(double* x, double* y, int* speed, double* degrees, double* speed_rotation) {
+	last_tick = tick;
+	tick = SDL_GetTicks();
+	double time = (tick - last_tick) / 1000.0;
+	double radians = *degrees * PI / 180;
+	if (*speed > TOP_SPEED) {
+		*speed = TOP_SPEED;
+	} else if (*speed < MIN_SPEED) {
+		*speed = MIN_SPEED;
+	}
+	if (*speed_rotation > TOP_ROTATION_SPEED) {
+		*speed_rotation = TOP_ROTATION_SPEED;
+	} else if (*speed_rotation < -TOP_ROTATION_SPEED) {
+		*speed_rotation = -TOP_ROTATION_SPEED;
+	}
+	*x += *speed * time * sin(radians);
+	if (*x > SCREEN_WIDTH - g_texture.getWidth()) {
+		*x = SCREEN_WIDTH - g_texture.getWidth();
+		*speed = 0;
+		*speed_rotation = 0;
+	} else if (*x < 0) {
+		*x = 0;
+		*speed = 0;
+		*speed_rotation = 0;
+	}
+	*y -= *speed * time * cos(radians);
+	if (*y > SCREEN_HEIGHT - g_texture.getHeight()) {
+		*y = SCREEN_HEIGHT - g_texture.getHeight();
+		*speed = 0;
+		*speed_rotation = 0;
+	} else if (*y < 0) {
+		*y = 0;
+		*speed = 0;
+		*speed_rotation = 0;
+	}
+	*degrees += *speed_rotation * time;
+	if (*degrees > 180) {
+		*degrees -= 360;
+	} else if (*degrees < -180) {
+		*degrees += 360;
+	}
+
+	std::cout << "time: " << time << "\tdegrees: " << *degrees << "\tspeed rotation: " << *speed_rotation << '\n';
+}
+
 
 #ifdef main
 # undef main
@@ -113,12 +164,13 @@ int main(int argc, char const *argv[]) {
 		} else{
 			bool quit = false;
 			SDL_Event e;
+			double speed_rotation = 0;
 			double degrees = 0;
 			SDL_RendererFlip flip_type = SDL_FLIP_NONE;
-			SDL_Point pos;
-			int speed = 3;
-			pos.x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
-			pos.y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
+			double x, y;
+			int speed = 0;
+			x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
+			y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
 			while (!quit) {
 				while (SDL_PollEvent(&e) != 0) {
 					if (e.type == SDL_QUIT) {
@@ -127,56 +179,39 @@ int main(int argc, char const *argv[]) {
 				}
 				const Uint8* current_key_states = SDL_GetKeyboardState(NULL);
 				if (current_key_states[SDL_SCANCODE_UP]) {
-					pos.y -= speed;
-					if (pos.y < 0) {
-						pos.y = 0;
-					}
+					speed += 15;
 					if (current_key_states[SDL_SCANCODE_LEFT]) {
-						pos.x -= speed;
-						if (pos.x < 0) {
-							pos.x = 0;
-						}
+						speed_rotation -= 5;
 					} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
-						pos.x += speed;
-						if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
-							pos.x = SCREEN_WIDTH - g_texture.getWidth();
-						}
+						speed_rotation += 5;
 					}
 				} else if (current_key_states[SDL_SCANCODE_DOWN]) {
-					pos.y += speed;
-					if (pos.y > SCREEN_HEIGHT - g_texture.getHeight()) {
-						pos.y = SCREEN_HEIGHT - g_texture.getHeight();
-					}
+					speed -= 5;
 					if (current_key_states[SDL_SCANCODE_LEFT]) {
-						pos.x -= speed;
-						if (pos.x < 0) {
-							pos.x = 0;
-						}
+						speed_rotation -= 5;
 					} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
-						pos.x += speed;
-						if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
-							pos.x = SCREEN_WIDTH - g_texture.getWidth();
-						}
+						speed_rotation += 5;
+					}
+				} else if (!current_key_states[SDL_SCANCODE_UP] && !current_key_states[SDL_SCANCODE_DOWN]) {
+					speed *= 0.95;
+					if (speed < 1 && speed > -1) {
+						speed = 0;
+					}
+				}
+				if (!current_key_states[SDL_SCANCODE_LEFT] && !current_key_states[SDL_SCANCODE_RIGHT]) {
+					speed_rotation *= 0.95;
+					if (speed_rotation < 1 && speed_rotation > -1) {
+						speed_rotation = 0;
 					}
 				}
 				if (current_key_states[SDL_SCANCODE_LEFT]) {
-					pos.x -= speed;
-					if (pos.x < 0) {
-						pos.x = 0;
-					}
+					speed_rotation -= 5;
 				} else if (current_key_states[SDL_SCANCODE_RIGHT]) {
-					pos.x += speed;
-					if (pos.x > SCREEN_WIDTH - g_texture.getWidth()) {
-						pos.x = SCREEN_WIDTH - g_texture.getWidth();
-					}
+					speed_rotation += 5;
 				}
-				if (current_key_states[SDL_SCANCODE_Q]) {
-					degrees += 1;
-				} else if (current_key_states[SDL_SCANCODE_E]) {
-					degrees -= 1;
-				}
+				move(&x, &y, &speed, &degrees, &speed_rotation);
 				SDL_RenderClear(g_renderer);
-				g_texture.renderEx(pos.x, pos.y, nullptr, degrees, nullptr, flip_type);
+				g_texture.renderEx((int)x, (int)y, nullptr, degrees, nullptr, flip_type);
 				SDL_RenderPresent(g_renderer);
 			}
 		}
