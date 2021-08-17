@@ -11,7 +11,7 @@ INCLUDE_PATHS = -IC:\cygwin64\usr\include\SDL2
 LIBRARY_PATHS = -LC:\cygwin64\lib
 
 #LINKER_FLAGS specifies the libraries we're linking against
-LINKER_FLAGS = -lSDL2main -lSDL2 -lSDL2_image
+LINKER_FLAGS = -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf
 
 #This is the target that compiles our executable
 all : $(OBJS)
