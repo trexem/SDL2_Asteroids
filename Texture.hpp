@@ -9,6 +9,12 @@
 
 class Texture {
 public:
+	Texture() {
+		m_renderer = nullptr;
+		m_texture = nullptr;
+		m_width = 0;
+		m_height = 0;
+	}
 	Texture(SDL_Renderer* g_renderer) {
 		m_renderer = g_renderer;
 		m_texture = nullptr;

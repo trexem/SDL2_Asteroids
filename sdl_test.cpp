@@ -5,16 +5,16 @@
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
-#include "Texture.hpp"
-#include "Timer.hpp"
 
 //Constants
 const int SCREEN_WIDTH = 1080;
 const int SCREEN_HEIGHT = 720;
-const int TOP_SPEED = 1000;
-const int MIN_SPEED = -200;
-const int TOP_ROTATION_SPEED = 720; //2 turn per second (?)
+const int SCREEN_FPS = 60;
+const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 const double PI = 3.14159264;
+
+#include "Timer.hpp"
+#include "Ship.hpp"
 
 //Global variables, prefix g_ for them
 SDL_Window* g_window = nullptr;
@@ -57,7 +57,7 @@ bool init() {
 	    //Flag to know if everything is ok
 	bool success = true;
 	    //Init SDL
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
 		    //If error, print error
 		printf("SDL could not initialize! SDL_ERROR: %s\n", SDL_GetError());
 		success = false;
@@ -106,16 +106,13 @@ bool init() {
 	return success;
 }
 //Function to load all Media to be used
-bool loadMedia() {
+bool loadMedia() {//Thinking that loadMedia should be a function for each class/object that needs to load
+	//something,so we don't use a global variable for the texture and instead have the texture object
+	//inside the other object, in this case the text object or the spaceship object
+
 	    //Loading success flag
 	bool success = true;
 
-	    //Load spaceship image
-	if (!g_texture.loadFromFile("img/hello_world.bmp"))
-	{
-		printf("Unable to load image %s! SDL Error: %s\n", "img/hello_world.bmp", SDL_GetError() );
-		success = false;
-	}
 	g_font = TTF_OpenFont("fonts/consola.ttf", 24);
 	if (g_font == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
@@ -141,56 +138,7 @@ void close() {
 }
 
 //Motion function
-void move(double* x, double* y, int* speed, double* degrees, double* speed_rotation) {
-//about to be changed with timer class
-	last_tick = tick;
-	tick = SDL_GetTicks();
-	double time = (tick - last_tick) / 1000.0;
-	    //convert degrees to radians
-	double radians = *degrees * PI / 180;
-	    //top max and min speed
-	if (*speed > TOP_SPEED) {
-		*speed = TOP_SPEED;
-	} else if (*speed < MIN_SPEED) {
-		*speed = MIN_SPEED;
-	}
-	    //top max and min rotation speed
-	if (*speed_rotation > TOP_ROTATION_SPEED) {
-		*speed_rotation = TOP_ROTATION_SPEED;
-	} else if (*speed_rotation < -TOP_ROTATION_SPEED) {
-		*speed_rotation = -TOP_ROTATION_SPEED;
-	}
-	    //move X
-	*x += *speed * time * sin(radians);
-	if (*x > SCREEN_WIDTH - g_texture.getWidth()) {
-		*x = SCREEN_WIDTH - g_texture.getWidth();
-		*speed = 0;
-		*speed_rotation = 0;
-	} else if (*x < 0) {
-		*x = 0;
-		*speed = 0;
-		*speed_rotation = 0;
-	}
-	    //move Y, -= because Y axis is inverted
-	*y -= *speed * time * cos(radians);
-	if (*y > SCREEN_HEIGHT - g_texture.getHeight()) {
-		*y = SCREEN_HEIGHT - g_texture.getHeight();
-		*speed = 0;
-		*speed_rotation = 0;
-	} else if (*y < 0) {
-		*y = 0;
-		*speed = 0;
-		*speed_rotation = 0;
-	}
-	    //move degrees
-	*degrees += *speed_rotation * time;
-	    //to avoid going to inf we stay between -180 and 180
-	if (*degrees > 180) {
-		*degrees -= 360;
-	} else if (*degrees < -180) {
-		*degrees += 360;
-	}
-}
+
 
 //gives me error for compiling with g++ for windows app, so i do this
 #ifdef main
@@ -207,21 +155,20 @@ int main(int argc, char const *argv[]) {
 			    //initialize variables to use
 			bool quit = false;
 			SDL_Event e;
+			Ship spaceship = Ship(g_renderer);
+			spaceship.setPos(SCREEN_WIDTH / 2 - g_texture.getWidth() / 2,
+			                 SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2,
+			                 0);
 			SDL_Color text_color = {0, 255, 255, 255};
-			Timer fps_timer;
+			Timer fps_timer, cap_timer, step_timer;
 			std::stringstream time_text;
 			int counted_frames = 0;
 			fps_timer.start();
-			double speed_rotation = 0;
-			double degrees = 0;
-			SDL_RendererFlip flip_type = SDL_FLIP_NONE;
-			double x, y;
-			int speed = 0;
-			x = SCREEN_WIDTH / 2 - g_texture.getWidth() / 2;
-			y = SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2;
+			double time_step;
 
 			    //start main loop
 			while (!quit) {
+				cap_timer.start();
 				while (SDL_PollEvent(&e) != 0) {
 					    //Quit if the X button is pressed
 					if (e.type == SDL_QUIT) {
@@ -231,43 +178,9 @@ int main(int argc, char const *argv[]) {
 				    //The array current_key_states has the state of the pressed keys
 				const Uint8* current_key_states = SDL_GetKeyboardState(NULL);
 				    //Key UP
-				if (current_key_states[SDL_SCANCODE_UP] || current_key_states[SDL_SCANCODE_W]) {
-					speed += 15;
-					    //Key LEFT
-					if (current_key_states[SDL_SCANCODE_LEFT] || current_key_states[SDL_SCANCODE_A]) {
-						speed_rotation -= 5;
-					} else if (current_key_states[SDL_SCANCODE_RIGHT] || current_key_states[SDL_SCANCODE_D]) { //Key RIGHT
-						speed_rotation += 5;
-					}
-				} else if (current_key_states[SDL_SCANCODE_DOWN] || current_key_states[SDL_SCANCODE_S]) { //Key DOWN
-					speed -= 5;
-					if (current_key_states[SDL_SCANCODE_LEFT] || current_key_states[SDL_SCANCODE_A]) {
-						speed_rotation -= 5;
-					} else if (current_key_states[SDL_SCANCODE_RIGHT] || current_key_states[SDL_SCANCODE_D]) {
-						speed_rotation += 5;
-					}
-				} else if (!current_key_states[SDL_SCANCODE_UP] && !current_key_states[SDL_SCANCODE_DOWN] &&
-				           !current_key_states[SDL_SCANCODE_W] && !current_key_states[SDL_SCANCODE_S]) {
-					    //If no UP or DOWN are pressed we desacelerate
-					speed *= 0.95;
-					if (speed < 1 && speed > -1) { //if the number is too small we round down to 0
-						speed = 0;
-					}
-				}
-				if (!current_key_states[SDL_SCANCODE_LEFT] && !current_key_states[SDL_SCANCODE_RIGHT] &&
-				    !current_key_states[SDL_SCANCODE_A] && !current_key_states[SDL_SCANCODE_D]) {
-					    //If no LEFT or RIGHT are pressed we desacelerate the turn
-					speed_rotation *= 0.95;
-					if (speed_rotation < 1 && speed_rotation > -1) { //if the number is too small we round down to 0
-						speed_rotation = 0;
-					}
-				}
-				if (current_key_states[SDL_SCANCODE_LEFT] || current_key_states[SDL_SCANCODE_A]) {
-					speed_rotation -= 5;
-				} else if (current_key_states[SDL_SCANCODE_RIGHT] || current_key_states[SDL_SCANCODE_D]) {
-					speed_rotation += 5;
-				}
-				    //calculate fps
+				spaceship.handleInput(current_key_states);
+				//calculate fps
+
 				float avg_fps = counted_frames / (fps_timer.getTicks() / 1000.f);
 				if (avg_fps > 9999) {
 					avg_fps = 0;
@@ -277,16 +190,28 @@ int main(int argc, char const *argv[]) {
 				if (!g_fps_text_texture.loadFromRenderedText(time_text.str().c_str(), text_color, g_font)) {
 					std::cout << "Unable to render FPS texture!" << '\n';
 				}
-				    //Call to motion function
-				move(&x, &y, &speed, &degrees, &speed_rotation);
+				//Call to motion function
+
+				time_step = step_timer.getTicks() / 1000.0;
+				spaceship.move(time_step);
+				step_timer.start();
+
 				    //Clear renderer
 				SDL_RenderClear(g_renderer);
 				    //Render the spaceship
+				spaceship.render();
 				g_fps_text_texture.render(0, 0);
-				g_texture.renderEx((int)x, (int)y, nullptr, degrees, nullptr, flip_type);
+				//g_texture.renderEx((int)spaceship.getX(), (int)spaceship.getY(), nullptr, spaceship.getDegrees(), nullptr, flip_type);
+
 				    //display in window the render
 				SDL_RenderPresent(g_renderer);
 				++counted_frames;
+				int frame_ticks = cap_timer.getTicks();
+				if (frame_ticks < SCREEN_TICKS_PER_FRAME)
+				{
+					    //Wait remaining time
+					SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_ticks);
+				}
 			}//main loop
 		}
 	}
