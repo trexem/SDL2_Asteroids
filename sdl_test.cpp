@@ -19,7 +19,6 @@ const double PI = 3.14159264;
 //Global variables, prefix g_ for them
 SDL_Window* g_window = nullptr;
 SDL_Renderer* g_renderer = nullptr;
-Texture g_texture = Texture(g_renderer);
 Texture g_fps_text_texture = Texture(g_renderer);
 Uint32 last_tick = 0, tick = 0;
 TTF_Font* g_font = nullptr;
@@ -63,7 +62,7 @@ bool init() {
 		success = false;
 	} else {
 		    //Create SDL window
-		g_window = SDL_CreateWindow("Test Interface",
+		g_window = SDL_CreateWindow("Asteroids - by trexem",
 		                            SDL_WINDOWPOS_CENTERED,
 		                            SDL_WINDOWPOS_CENTERED,
 		                            SCREEN_WIDTH,
@@ -83,7 +82,6 @@ bool init() {
 				success = false;
 			} else {
 				    //as of right now i pass herethe renderer to the texture, thinking of doing it differently
-				g_texture.m_renderer = g_renderer;
 				g_fps_text_texture.m_renderer = g_renderer;
 				    //start screen in black
 				SDL_SetRenderDrawColor(g_renderer, 0x00, 0x00, 0x00, 0xFF);
@@ -124,7 +122,6 @@ bool loadMedia() {//Thinking that loadMedia should be a function for each class/
 
 //Free memory and close properly
 void close() {
-	g_texture.free();
 	g_fps_text_texture.free();
 	TTF_CloseFont(g_font);
 	g_font = nullptr;
@@ -156,8 +153,8 @@ int main(int argc, char const *argv[]) {
 			bool quit = false;
 			SDL_Event e;
 			Ship spaceship = Ship(g_renderer);
-			spaceship.setPos(SCREEN_WIDTH / 2 - g_texture.getWidth() / 2,
-			                 SCREEN_HEIGHT / 2 - g_texture.getHeight() / 2,
+			spaceship.setPos(SCREEN_WIDTH / 2,
+			                 SCREEN_HEIGHT / 2,
 			                 0);
 			SDL_Color text_color = {0, 255, 255, 255};
 			Timer fps_timer, cap_timer, step_timer;
@@ -198,10 +195,9 @@ int main(int argc, char const *argv[]) {
 
 				    //Clear renderer
 				SDL_RenderClear(g_renderer);
-				    //Render the spaceship
+				    //Render
 				spaceship.render();
 				g_fps_text_texture.render(0, 0);
-				//g_texture.renderEx((int)spaceship.getX(), (int)spaceship.getY(), nullptr, spaceship.getDegrees(), nullptr, flip_type);
 
 				    //display in window the render
 				SDL_RenderPresent(g_renderer);
@@ -213,8 +209,10 @@ int main(int argc, char const *argv[]) {
 					SDL_Delay(SCREEN_TICKS_PER_FRAME - frame_ticks);
 				}
 			}//main loop
+			spaceship.free();
 		}
 	}
+
 	close();
 
 

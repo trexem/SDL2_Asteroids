@@ -133,6 +133,9 @@ public:
 	void render() {
 		m_texture.renderEx(m_pos_x, m_pos_y, nullptr, m_rot_degrees, nullptr, SDL_FLIP_NONE);
 	}
+	void free() {
+		m_texture.free();
+	}
 	double getX() {
 		return m_pos_x;
 	}
@@ -141,6 +144,9 @@ public:
 	}
 	double getDegrees() {
 		return m_rot_degrees;
+	}
+	Texture getTexture() {
+		return m_texture;
 	}
 private:
 	double m_pos_x{0}, m_pos_y{0}, m_rot_degrees{0};
