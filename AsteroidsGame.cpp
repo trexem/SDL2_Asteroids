@@ -158,37 +158,40 @@ int main(int argc, char const *argv[]) {
 			std::cout << "Failed to load media!" << '\n';
 		} else{
 			    //initialize variables to use
-			bool quit = false, pause = false;
-			SDL_Event e;
-			Ship spaceship = Ship(g_renderer);
+			bool quit = false, pause = false; //flags for quitting and pausing game
+			SDL_Event e; //event to catch keypresses
+			Ship spaceship = Ship(g_renderer); //Initialize the spaceship
 			spaceship.setPos(SCREEN_WIDTH / 2,
 			                 SCREEN_HEIGHT / 2,
 			                 0
 			                 );
-			SDL_Color text_color = {255, 255, 255, 255};
-			Timer fps_timer, cap_timer, step_timer;
-			std::stringstream time_text, pause_text;
-			int counted_frames = 0;
+			SDL_Color text_color = {255, 255, 255, 255}; //Text color white
+			Timer fps_timer, cap_timer, step_timer; //Timers to use: see fps, cap fps at 60, step time between each frame
+			std::stringstream time_text, pause_text; //strings to print: fps and PAUSE
+			int counted_frames = 0; //How many frames have passed
+			    //Set text for PAUSE
 			pause_text.str("");
 			pause_text << "PAUSE";
 			if (!g_pause_text_texture.loadFromRenderedText(pause_text.str().c_str(), text_color, g_pause_ttf)) {
 				std::cout << "Unable to render FPS texture!" << '\n';
 			}
+			    //start fps timer
 			fps_timer.start();
+			    //variable that hold time in seconds
 			double time_step;
 
 			    //start main loop
 			while (!quit) {
-				cap_timer.start();
+				cap_timer.start(); //start cap timer at the beggining of the "frame"
 				while (SDL_PollEvent(&e) != 0) {
 					    //Quit if the X button is pressed
 					if (e.type == SDL_QUIT) {
 						quit = true;
 					} else if (e.type == SDL_KEYDOWN) {
-						if (e.key.keysym.sym == SDLK_p) {
+						if (e.key.keysym.sym == SDLK_p) {//P for pause
 							pause = !pause;
 						}
-						if (e.key.keysym.sym == SDLK_r) {
+						if (e.key.keysym.sym == SDLK_r) {//R for restart. Will change in the future for an option in the pause menu
 							spaceship.restart();
 						}
 					}
@@ -196,24 +199,26 @@ int main(int argc, char const *argv[]) {
 				    //The array current_key_states has the state of the pressed keys
 				const Uint8* current_key_states = SDL_GetKeyboardState(NULL);
 
-				    //calculate fps
+				    //calculate fps: how many frames divided by the time that has passed since the game started
 				float avg_fps = counted_frames / (fps_timer.getTicks() / 1000.f);
 				if (avg_fps > 9999) {
 					avg_fps = 0;
 				}
+				    //Set text for the fps
 				time_text.str("");
 				time_text << "Average FPS: " << avg_fps;
 				if (!g_fps_text_texture.loadFromRenderedText(time_text.str().c_str(), text_color, g_fps_ttf)) {
 					std::cout << "Unable to render FPS texture!" << '\n';
 				}
-				    //Call to motion function
+				    //Calculate time between previous movement and now
+				time_step = step_timer.getTicks() / 1000.0;
+				    //while in pause, we don't take account of keys to move the spaceship
 				if (!pause) {
-					time_step = step_timer.getTicks() / 1000.0;
 					spaceship.handleInput(current_key_states);
-				} else {
-					time_step = 0;
 				}
+				    //move spaceship
 				spaceship.move(time_step);
+				    //restart step timer
 				step_timer.start();
 
 				    //Clear renderer
@@ -221,6 +226,7 @@ int main(int argc, char const *argv[]) {
 				    //Render
 				spaceship.render();
 				g_fps_text_texture.render(0, 0);
+				    //Render PAUSE text while game is paused
 				if (pause) {
 					g_pause_text_texture.render(
 						SCREEN_WIDTH / 2 - g_pause_text_texture.getWidth() / 2,
@@ -230,6 +236,7 @@ int main(int argc, char const *argv[]) {
 				    //display in window the render
 				SDL_RenderPresent(g_renderer);
 				++counted_frames;
+				    //Wait time to cap FPS at 60
 				int frame_ticks = cap_timer.getTicks();
 				if (frame_ticks < SCREEN_TICKS_PER_FRAME)
 				{

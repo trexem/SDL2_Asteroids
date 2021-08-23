@@ -1,8 +1,8 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = sdl_test.cpp
+OBJS = AsteroidsGame.cpp
 
 #OBJ_NAME specifies the name of our exectuable
-OBJ_NAME = release\sdl_test.exe
+OBJ_NAME = release\AsteroidsGame.exe
 
 #INCLUDE_PATHS specifies the additional include paths we'll need
 INCLUDE_PATHS = -IC:\cygwin64\usr\include\SDL2

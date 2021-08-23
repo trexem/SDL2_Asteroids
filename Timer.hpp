@@ -41,7 +41,7 @@ public:
 	Uint32 getTicks() {
 		if (m_started) {
 			if (m_paused) {
-				return m_paused_ticks;
+				return 0;
 			} else {
 				return SDL_GetTicks() - m_start_ticks;
 			}
