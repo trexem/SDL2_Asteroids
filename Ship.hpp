@@ -22,6 +22,11 @@ public:
 			m_pos_y -= SHOT_SPEED * t_time_step * cos(radians);
 		}
 	}
+	void setPos(double t_x, double t_y, double t_rot_degrees) {
+		m_pos_x = t_x;
+		m_pos_y = t_y;
+		m_rot_degrees = t_rot_degrees;
+	}
 	void render() {
 		if (!isDead()) {
 			m_texture->renderEx(m_pos_x, m_pos_y, nullptr, m_rot_degrees, nullptr, SDL_FLIP_NONE);
@@ -186,6 +191,16 @@ public:
 		m_pos_x = t_x;
 		m_pos_y = t_y;
 		m_rot_degrees = t_rot_degrees;
+	}
+	void restart() {
+		m_pos_x = SCREEN_WIDTH / 2;
+		m_pos_y = SCREEN_HEIGHT / 2;
+		m_rot_degrees = 0;
+		m_vel = 0;
+		m_rot_vel = 0;
+		for (int i = 0; i < SHIP_MAX_SHOTS; i++) {
+			m_shots[i]->setPos(-20, -20, 0);
+		}
 	}
 	void render() {
 		m_texture.renderEx(m_pos_x, m_pos_y, nullptr, m_rot_degrees, nullptr, SDL_FLIP_NONE);

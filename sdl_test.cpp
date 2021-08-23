@@ -20,8 +20,10 @@ const double PI = 3.14159264;
 SDL_Window* g_window = nullptr;
 SDL_Renderer* g_renderer = nullptr;
 Texture g_fps_text_texture = Texture(g_renderer);
+Texture g_pause_text_texture = Texture(g_renderer);
 Uint32 last_tick = 0, tick = 0;
-TTF_Font* g_font = nullptr;
+TTF_Font* g_fps_ttf = nullptr;
+TTF_Font* g_pause_ttf = nullptr;
 
 /*SDL_Surface* loadSurface(std::string path) {
     SDL_Surface* optimized_surface = nullptr;
@@ -83,6 +85,7 @@ bool init() {
 			} else {
 				    //as of right now i pass herethe renderer to the texture, thinking of doing it differently
 				g_fps_text_texture.m_renderer = g_renderer;
+				g_pause_text_texture.m_renderer = g_renderer;
 				    //start screen in black
 				SDL_SetRenderDrawColor(g_renderer, 0x00, 0x00, 0x00, 0xFF);
 				int img_flags = IMG_INIT_PNG;
@@ -111,8 +114,13 @@ bool loadMedia() {//Thinking that loadMedia should be a function for each class/
 	    //Loading success flag
 	bool success = true;
 
-	g_font = TTF_OpenFont("fonts/consola.ttf", 24);
-	if (g_font == NULL) {
+	g_fps_ttf = TTF_OpenFont("fonts/consola.ttf", 14);
+	if (g_fps_ttf == NULL) {
+		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
+		success = false;
+	}
+	g_pause_ttf = TTF_OpenFont("fonts/consola.ttf", 58);
+	if (g_pause_ttf == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
 		success = false;
 	}
@@ -123,8 +131,11 @@ bool loadMedia() {//Thinking that loadMedia should be a function for each class/
 //Free memory and close properly
 void close() {
 	g_fps_text_texture.free();
-	TTF_CloseFont(g_font);
-	g_font = nullptr;
+	g_pause_text_texture.free();
+	TTF_CloseFont(g_fps_ttf);
+	TTF_CloseFont(g_pause_ttf);
+	g_fps_ttf = nullptr;
+	g_pause_ttf = nullptr;
 	SDL_DestroyRenderer(g_renderer);
 	SDL_DestroyWindow(g_window);
 	g_window = nullptr;
@@ -133,9 +144,6 @@ void close() {
 	IMG_Quit();
 	SDL_Quit();
 }
-
-//Motion function
-
 
 //gives me error for compiling with g++ for windows app, so i do this
 #ifdef main
@@ -150,16 +158,22 @@ int main(int argc, char const *argv[]) {
 			std::cout << "Failed to load media!" << '\n';
 		} else{
 			    //initialize variables to use
-			bool quit = false;
+			bool quit = false, pause = false;
 			SDL_Event e;
 			Ship spaceship = Ship(g_renderer);
 			spaceship.setPos(SCREEN_WIDTH / 2,
 			                 SCREEN_HEIGHT / 2,
-			                 0);
-			SDL_Color text_color = {0, 255, 255, 255};
+			                 0
+			                 );
+			SDL_Color text_color = {255, 255, 255, 255};
 			Timer fps_timer, cap_timer, step_timer;
-			std::stringstream time_text;
+			std::stringstream time_text, pause_text;
 			int counted_frames = 0;
+			pause_text.str("");
+			pause_text << "PAUSE";
+			if (!g_pause_text_texture.loadFromRenderedText(pause_text.str().c_str(), text_color, g_pause_ttf)) {
+				std::cout << "Unable to render FPS texture!" << '\n';
+			}
 			fps_timer.start();
 			double time_step;
 
@@ -170,26 +184,35 @@ int main(int argc, char const *argv[]) {
 					    //Quit if the X button is pressed
 					if (e.type == SDL_QUIT) {
 						quit = true;
+					} else if (e.type == SDL_KEYDOWN) {
+						if (e.key.keysym.sym == SDLK_p) {
+							pause = !pause;
+						}
+						if (e.key.keysym.sym == SDLK_r) {
+							spaceship.restart();
+						}
 					}
 				}
 				    //The array current_key_states has the state of the pressed keys
 				const Uint8* current_key_states = SDL_GetKeyboardState(NULL);
-				    //Key UP
-				spaceship.handleInput(current_key_states);
-				//calculate fps
 
+				    //calculate fps
 				float avg_fps = counted_frames / (fps_timer.getTicks() / 1000.f);
 				if (avg_fps > 9999) {
 					avg_fps = 0;
 				}
 				time_text.str("");
 				time_text << "Average FPS: " << avg_fps;
-				if (!g_fps_text_texture.loadFromRenderedText(time_text.str().c_str(), text_color, g_font)) {
+				if (!g_fps_text_texture.loadFromRenderedText(time_text.str().c_str(), text_color, g_fps_ttf)) {
 					std::cout << "Unable to render FPS texture!" << '\n';
 				}
-				//Call to motion function
-
-				time_step = step_timer.getTicks() / 1000.0;
+				    //Call to motion function
+				if (!pause) {
+					time_step = step_timer.getTicks() / 1000.0;
+					spaceship.handleInput(current_key_states);
+				} else {
+					time_step = 0;
+				}
 				spaceship.move(time_step);
 				step_timer.start();
 
@@ -198,7 +221,12 @@ int main(int argc, char const *argv[]) {
 				    //Render
 				spaceship.render();
 				g_fps_text_texture.render(0, 0);
-
+				if (pause) {
+					g_pause_text_texture.render(
+						SCREEN_WIDTH / 2 - g_pause_text_texture.getWidth() / 2,
+						SCREEN_HEIGHT / 2 - g_pause_text_texture.getHeight() / 2
+						);
+				}
 				    //display in window the render
 				SDL_RenderPresent(g_renderer);
 				++counted_frames;
