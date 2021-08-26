@@ -43,8 +43,8 @@ Ship::Ship(SDL_Renderer * t_renderer) {
 	m_renderer = t_renderer;
 	m_texture = Texture(m_renderer);
 	m_shot_texture = Texture(m_renderer);
-	m_texture.loadFromFile("img/spaceship.bmp"); //initialize and pass image for the ship
-	m_shot_texture.loadFromFile("img/shot.png");//initialize and pass image for the shot
+	m_texture.loadFromFile("data/img/spaceship.bmp"); //initialize and pass image for the ship
+	m_shot_texture.loadFromFile("data/img/shot.png");//initialize and pass image for the shot
 	    //initialize shots outside of the scree, so "dead" shots
 	for (int i = 0; i < SHIP_MAX_SHOTS; i++) {
 		m_shots[i] = new Shot(-20, -20, 0, &m_shot_texture);
@@ -62,45 +62,14 @@ void Ship::handleInput(const Uint8* t_current_key_states) {
 	    //So i have to add the cases for more than one key pressed at the same time
 	if (t_current_key_states[SDL_SCANCODE_UP] || t_current_key_states[SDL_SCANCODE_W]) {
 		m_vel += SHIP_SPEED;
-		    //Key LEFT
-		if (t_current_key_states[SDL_SCANCODE_LEFT] || t_current_key_states[SDL_SCANCODE_A]) {
-			if (m_rot_vel > 0) {
-				m_rot_vel = 0;
-			}
-			m_rot_vel -= SHIP_ROT_SPEED;
-		} else if (t_current_key_states[SDL_SCANCODE_RIGHT] || t_current_key_states[SDL_SCANCODE_D]) { //Key RIGHT
-			if (m_rot_vel < 0) {
-				m_rot_vel = 0;
-			}
-			m_rot_vel += SHIP_ROT_SPEED;
-		}
 	} else if (t_current_key_states[SDL_SCANCODE_DOWN] || t_current_key_states[SDL_SCANCODE_S]) { //Key DOWN
 		m_vel -= SHIP_SPEED;
-		if (t_current_key_states[SDL_SCANCODE_LEFT] || t_current_key_states[SDL_SCANCODE_A]) {
-			if (m_rot_vel > 0) {
-				m_rot_vel = 0;
-			}
-			m_rot_vel -= SHIP_ROT_SPEED;
-		} else if (t_current_key_states[SDL_SCANCODE_RIGHT] || t_current_key_states[SDL_SCANCODE_D]) {
-			if (m_rot_vel < 0) {
-				m_rot_vel = 0;
-			}
-			m_rot_vel += SHIP_ROT_SPEED;
-		}
 	} else if (!t_current_key_states[SDL_SCANCODE_UP] && !t_current_key_states[SDL_SCANCODE_DOWN] &&
 	           !t_current_key_states[SDL_SCANCODE_W] && !t_current_key_states[SDL_SCANCODE_S]) {
 		    //If no UP or DOWN are pressed we desacelerate
 		m_vel *= 0.95;
 		if (m_vel < 1 && m_vel > -1) { //if the number is too small we round down to 0
 			m_vel = 0;
-		}
-	}
-	if (!t_current_key_states[SDL_SCANCODE_LEFT] && !t_current_key_states[SDL_SCANCODE_RIGHT] &&
-	    !t_current_key_states[SDL_SCANCODE_A] && !t_current_key_states[SDL_SCANCODE_D]) {
-		    //If no LEFT or RIGHT are pressed we desacelerate the turn
-		m_rot_vel *= 0.95;
-		if (m_rot_vel < 1 && m_rot_vel > -1) { //if the number is too small we round down to 0
-			m_rot_vel = 0;
 		}
 	}
 	if (t_current_key_states[SDL_SCANCODE_LEFT] || t_current_key_states[SDL_SCANCODE_A]) {
@@ -113,6 +82,13 @@ void Ship::handleInput(const Uint8* t_current_key_states) {
 			m_rot_vel = 0;
 		}
 		m_rot_vel += SHIP_ROT_SPEED;
+	} else if (!t_current_key_states[SDL_SCANCODE_LEFT] && !t_current_key_states[SDL_SCANCODE_RIGHT] &&
+	           !t_current_key_states[SDL_SCANCODE_A] && !t_current_key_states[SDL_SCANCODE_D]) {
+		    //If no LEFT or RIGHT are pressed we desacelerate the turn
+		m_rot_vel *= 0.95;
+		if (m_rot_vel < 1 && m_rot_vel > -1) {     //if the number is too small we round down to 0
+			m_rot_vel = 0;
+		}
 	}
 	if (t_current_key_states[SDL_SCANCODE_SPACE] && m_last_shot > SHIP_SHOT_DELAY) {
 		shoot();

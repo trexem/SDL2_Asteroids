@@ -112,12 +112,12 @@ bool loadMedia() {//Thinking that loadMedia should be a function for each class/
 	    //Loading success flag
 	bool success = true;
 
-	g_fps_ttf = TTF_OpenFont("fonts/consola.ttf", 14);
+	g_fps_ttf = TTF_OpenFont("data/fonts/consola.ttf", 14);
 	if (g_fps_ttf == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
 		success = false;
 	}
-	g_pause_ttf = TTF_OpenFont("fonts/consola.ttf", 58);
+	g_pause_ttf = TTF_OpenFont("data/fonts/consola.ttf", 58);
 	if (g_pause_ttf == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
 		success = false;
