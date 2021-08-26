@@ -1,7 +1,7 @@
-# ASTEROID GAME by trexem
+# ASTEROIDS GAME by trexem
 Mostly testing and playing with SDL2, it is still WIP so be patient, I'm learning about it.
 
-You need to have installed SDL2 libraries, I'm using `g++` compiler in `cygwin64` and `make` command to compile. But there're tutorials for you to install SDL2 with MingW32, Codeblocks or whatever, also check [SDL oficial page](https://www.libsdl.org/)
+You need to have installed SDL2 libraries, I'm using `g++` compiler in `cygwin64` and `make` command to compile. But there're tutorials for you to install SDL2 with MingW32, Codeblocks or whatever, also check [SDL official page](https://www.libsdl.org/)
 
 * [AsteroidsGame.cpp](https://github.com/trexem/SDL2_Asteroids/blob/main/AsteroidsGame.cpp) is the main file
 * [Ship.hpp](https://github.com/trexem/SDL2_Asteroids/blob/main/Ship.hpp) has the Shot and Ship classes
