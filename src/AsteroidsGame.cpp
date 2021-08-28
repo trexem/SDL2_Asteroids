@@ -7,14 +7,12 @@
 #include <SDL2/SDL_ttf.h>
 
 //Constants
-const int SCREEN_WIDTH = 1080;
-const int SCREEN_HEIGHT = 720;
+
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
-const double PI = 3.14159264;
 
-#include "Timer.hpp"
-#include "Ship.hpp"
+#include "src/Timer.hpp"
+#include "src/Ship.hpp"
 
 //Global variables, prefix g_ for them
 SDL_Window* g_window = nullptr;
@@ -114,12 +112,12 @@ bool loadMedia() {//Thinking that loadMedia should be a function for each class/
 	    //Loading success flag
 	bool success = true;
 
-	g_fps_ttf = TTF_OpenFont("fonts/consola.ttf", 14);
+	g_fps_ttf = TTF_OpenFont("data/fonts/consola.ttf", 14);
 	if (g_fps_ttf == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
 		success = false;
 	}
-	g_pause_ttf = TTF_OpenFont("fonts/consola.ttf", 58);
+	g_pause_ttf = TTF_OpenFont("data/fonts/consola.ttf", 58);
 	if (g_pause_ttf == NULL) {
 		std::cout << "Failed to load consola font! SDL_ttf Error:" << TTF_GetError() << '\n';
 		success = false;
@@ -228,6 +226,7 @@ int main(int argc, char const *argv[]) {
 				g_fps_text_texture.render(0, 0);
 				    //Render PAUSE text while game is paused
 				if (pause) {
+					step_timer.pause();
 					g_pause_text_texture.render(
 						SCREEN_WIDTH / 2 - g_pause_text_texture.getWidth() / 2,
 						SCREEN_HEIGHT / 2 - g_pause_text_texture.getHeight() / 2
