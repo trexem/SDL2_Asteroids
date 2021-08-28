@@ -6,8 +6,8 @@
 #include <string>
 #include <memory>
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 struct SDL_Surface_Deleter {
 	void operator()(SDL_Surface* surface) {

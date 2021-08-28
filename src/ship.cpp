@@ -1,4 +1,4 @@
-#include "src/Ship.hpp"
+#include "ship.hpp"
 
 Shot::Shot(int t_x, int t_y, double t_degrees, Texture* t_texture) {
 	m_pos_x = t_x;

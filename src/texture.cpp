@@ -1,4 +1,4 @@
-#include "src/Texture.hpp"
+#include "texture.hpp"
 
 Texture::Texture() {
 	m_renderer = nullptr;

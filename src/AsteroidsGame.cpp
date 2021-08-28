@@ -11,8 +11,8 @@
 const int SCREEN_FPS = 60;
 const int SCREEN_TICKS_PER_FRAME = 1000 / SCREEN_FPS;
 
-#include "src/Timer.hpp"
-#include "src/Ship.hpp"
+#include "timer.hpp"
+#include "ship.hpp"
 
 //Global variables, prefix g_ for them
 SDL_Window* g_window = nullptr;
@@ -143,10 +143,7 @@ void close() {
 	SDL_Quit();
 }
 
-//gives me error for compiling with g++ for windows app, so i do this
-#ifdef main
-# undef main
-#endif /* main */
+
 
 int main(int argc, char const *argv[]) {
 	if (!init()) {
