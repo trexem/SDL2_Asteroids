@@ -3,8 +3,8 @@
 #include <string>
 #include <sstream>
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
-#include <SDL_ttf.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_ttf.h>
 
 //Constants
 const int SCREEN_WIDTH = 1080;
