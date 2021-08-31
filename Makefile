@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project
-OBJS = src/AsteroidsGame.o src/ship.o src/texture.o src/timer.o
+OBJS = src/AsteroidsGame.o src/ship.o src/texture.o src/timer.o src/window.o src/renderer.o src/game.o
 
 #OBJ_NAME specifies the name of our exectuable
 OBJ_NAME = ./release/AsteroidsGame
@@ -22,11 +22,23 @@ src/texture.o: src/texture.cpp src/texture.hpp
 	g++ src/texture.cpp  $(LINKER_FLAGS) \
 	$(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -c -o ./$@
 
+src/window.o: src/window.cpp src/window.hpp
+	g++ src/window.cpp  $(LINKER_FLAGS) \
+	$(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -c -o ./$@
+
+src/renderer.o: src/renderer.cpp src/renderer.hpp
+	g++ src/renderer.cpp  $(LINKER_FLAGS) \
+	$(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -c -o ./$@
+
 src/ship.o: src/ship.cpp src/ship.hpp src/texture.hpp
 	g++ src/ship.cpp  $(LINKER_FLAGS) \
 	$(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -c -o ./$@
 
-src/AsteroidsGame.o: src/AsteroidsGame.cpp src/timer.hpp src/texture.hpp src/ship.hpp
+src/game.o: src/game.cpp src/game.hpp
+	g++ src/game.cpp  $(LINKER_FLAGS) \
+	$(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) -g -c -o ./$@
+
+src/AsteroidsGame.o: src/AsteroidsGame.cpp
 	g++ src/AsteroidsGame.cpp $(LINKER_FLAGS) $(pkg-config --cflags --libs  sdl2 SDL2_mixer SDL2_image ) \
 	-g -c -o ./$@
 

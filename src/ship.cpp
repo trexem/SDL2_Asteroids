@@ -34,6 +34,14 @@ bool Shot::isDead() {
 	return false;
 }
 
+Ship::Ship() {
+	m_pos_x = 0;
+	m_pos_y = 0;
+	m_rot_degrees = 0;
+	m_vel = 0;
+	m_rot_vel = 0;
+}
+
 Ship::Ship(SDL_Renderer * t_renderer) {
 	m_pos_x = 0;
 	m_pos_y = 0;
@@ -149,15 +157,13 @@ void Ship::move(double t_time_step) {
 }
 
 void Ship::setPos(double t_x, double t_y, double t_rot_degrees) {
-	m_pos_x = t_x;
-	m_pos_y = t_y;
+	m_pos_x = t_x - m_texture.getWidth() / 2;
+	m_pos_y = t_y - m_texture.getHeight() / 2;
 	m_rot_degrees = t_rot_degrees;
 }
 
 void Ship::restart(void) {
-	m_pos_x = SCREEN_WIDTH / 2;
-	m_pos_y = SCREEN_HEIGHT / 2;
-	m_rot_degrees = 0;
+	setPos(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 0);
 	m_vel = 0;
 	m_rot_vel = 0;
 	for (int i = 0; i < SHIP_MAX_SHOTS; i++) {

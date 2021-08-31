@@ -43,6 +43,8 @@ public:
 	const int SHIP_ROT_SPEED = 10; //acceleration, instead of speed
 	const float SHIP_SHOT_DELAY = .25; //How fast will the ship shoot?
 	    //Constructor, only needs a pointer to  set the renderer
+	Ship();
+
 	Ship(SDL_Renderer * t_renderer);
 	    //Desctructor, we also delete all shots
 	~Ship(void);

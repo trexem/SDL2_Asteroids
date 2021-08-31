@@ -15,6 +15,7 @@ Download the `/release` folder and run `AsteroidsGame`
 ### TODO
 
  - [ ] asteroids class
- - [ ] window class
- - [ ] renderer class
- - [ ] GAME (god)class
+ - [X] window class
+ - [X] renderer class
+ - [X] GAME (god)class
+ - [ ] Refactor Game class
